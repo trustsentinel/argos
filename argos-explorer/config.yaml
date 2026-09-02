@@ -1,0 +1,5 @@
+rabbitmq:
+  host: 'localhost'
+  exchange: 'peers-discovered'
+  username: 'user'
+  password: 'password'

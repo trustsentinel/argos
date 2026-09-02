@@ -1,0 +1,13 @@
+amqp:
+  host: 'localhost'
+  exchange: 'peers-discovered'
+  queue: 'peers-discovered.btc'
+  username: 'user'
+  password: 'password'
+
+elasticsearch:
+  host: "localhost"
+  port: 9200
+  index: "peers"
+
+

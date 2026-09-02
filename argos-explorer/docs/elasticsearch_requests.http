@@ -1,0 +1,51 @@
+### List all nodes (GET all documents from the "nodes" index)
+GET http://localhost:9200/nodes/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+### Get a specific node by ID (replace with actual node ID)
+GET http://localhost:9200/nodes/_doc/{node_id}
+Content-Type: application/json
+
+### Add a new node (create or update a node)
+PUT http://localhost:9200/nodes/_doc/{node_id}
+Content-Type: application/json
+
+{
+  "network": "btc",
+  "address": "203.11.72.6",
+  "port": 8333,
+  "public_key": null,
+  "source": "seed.bitcoin.jonasschnelli.ch",
+  "metadata": {
+    "version": "0.21.1",
+    "network_type": "mainnet",
+    "network_utxo": true,
+    "network_bloom": false,
+    "network_witness": true
+  },
+  "created": "2023-10-05T10:00:00Z",
+  "updated": "2023-10-06T15:00:00Z"
+}
+
+### Update an existing node (partial update)
+POST http://localhost:9200/nodes/_update/{node_id}
+Content-Type: application/json
+
+{
+  "doc": {
+    "metadata": {
+      "version": "0.21.2",
+      "network_bloom": true
+    },
+    "updated": "2023-10-06T16:30:00Z"
+  }
+}
+
+### Delete a node by ID
+DELETE http://localhost:9200/nodes/_doc/{node_id}

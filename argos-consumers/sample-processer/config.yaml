@@ -1,0 +1,9 @@
+amqp:
+  host: 'localhost'
+  exchange: 'peers-discovered'
+  queue: 'sample'
+  username: 'user'
+  password: 'password'
+
+
+
