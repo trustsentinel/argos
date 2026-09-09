@@ -1,4 +1,4 @@
-aio-pika==9.4.3
-elasticsearch>=8.15.1,<9  # keep the client on 8.x to match the Elasticsearch 8.15 server
-PyYAML==6.0.2
-python-dotenv==1.0.1
+aio-pika==10.0.1
+elasticsearch>=9.5.0,<10  # keep the client on 8.x to match the Elasticsearch 8.15 server
+PyYAML==6.0.3
+python-dotenv==1.2.3
