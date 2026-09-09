@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: byte-compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: py_compile the deployable apps
+        run: python -m compileall -q argos-explorer argos-consumers
+
+  unit:
+    name: unit tests (btc-processer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install deps
+        working-directory: argos-consumers/btc-processer
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+      - name: pytest
+        working-directory: argos-consumers/btc-processer
+        run: python -m pytest -q
+
+  e2e:
+    name: docker compose e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build images
+        run: docker compose -f infra/docker-compose.yml --profile test build
+      - name: run end-to-end test
+        run: docker compose -f infra/docker-compose.yml --profile test run --rm e2e
+      - name: cleanup
+        if: always()
+        run: docker compose -f infra/docker-compose.yml --profile test down -v

@@ -1,0 +1,11 @@
+amqp:
+  host: 'rabbitmq'
+  exchange: 'peers-discovered'
+  queue: 'peers-discovered.btc'
+  username: 'user'
+  password: 'password'
+
+elasticsearch:
+  host: 'elasticsearch'
+  port: 9200
+  index: 'peers'

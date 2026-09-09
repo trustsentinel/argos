@@ -1,31 +1,117 @@
-version: '3.8'
+name: argos
+
+# The argos pipeline, wired end to end:
+#
+#   explorer  --(peer events)-->  rabbitmq  --(fanout)-->  btc-processer
+#                                                               |
+#                                                   probes each node, then
+#                                                               v
+#                                                        elasticsearch
+#
+# Plain `docker compose up` runs the real pipeline (explorer discovers live
+# nodes). `docker compose --profile test run --rm e2e` runs a self-contained
+# end-to-end test against a mock node — see infra/test/.
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
-      - 9200:9200
+      - "9200:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks: [argos]
+
   rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"     # RabbitMQ default port for communication
-      - "15672:15672"   # RabbitMQ Management UI port
+    image: rabbitmq:3.13-management
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
-    networks:
-      - rabbitmq_network
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [argos]
+
+  # Discovery: finds real peers on the live network and publishes them.
+  explorer:
+    build: ../argos-explorer
+    environment:
+      ENV_PROFILE: docker
+    command: ["--network", "btc", "--maxpeers", "20", "--maxdepth", "5"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    networks: [argos]
+
+  # Processing: consumes btc events, probes each node, indexes findings.
+  btc-processer:
+    build: ../argos-consumers/btc-processer
+    environment:
+      ENV_PROFILE: docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    restart: on-failure
+    networks: [argos]
+
+  # Reference consumer (logs every event). Start with: --profile extras
+  sample-processer:
+    build: ../argos-consumers/sample-processer
+    environment:
+      ENV_PROFILE: docker
+    command: ["--network", "btc"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    profiles: ["extras"]
+    networks: [argos]
+
+  # --- test fixtures ---
+
+  # A fake bitcoin node the e2e probe can complete a handshake against.
+  mock-btc:
+    build: ./test
+    command: ["python", "mock_btc_node.py"]
+    profiles: ["test"]
+    networks: [argos]
+
+  # One-shot: publishes a synthetic event and asserts it lands in Elasticsearch.
+  e2e:
+    build: ./test
+    command: ["python", "e2e.py"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      btc-processer:
+        condition: service_started
+      mock-btc:
+        condition: service_started
+    profiles: ["test"]
+    networks: [argos]
 
 networks:
-  rabbitmq_network:
+  argos:
     driver: bridge
+
 volumes:
   es_data:
     driver: local

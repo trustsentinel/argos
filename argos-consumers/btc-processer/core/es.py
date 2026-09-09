@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from elasticsearch import Elasticsearch
 
 class ElasticsearchClient:
@@ -20,15 +20,15 @@ class ElasticsearchClient:
             "public_key": public_key,
             "source": source,
             "metadata": metadata,
-            "updated": datetime.utcnow().isoformat()
+            "updated": datetime.now(timezone.utc).isoformat()
         }
 
         node_id = f"{network}_{address}_{port}"
 
         if self.es.exists(index=self.index, id=node_id):
-            self.es.update(index=self.index, id=node_id, body={"doc": document})
+            self.es.update(index=self.index, id=node_id, doc=document)
             print(f"Updated node {node_id}")
         else:
             document["created"] = document["updated"]
-            self.es.index(index=self.index, id=node_id, body=document)
+            self.es.index(index=self.index, id=node_id, document=document)
             print(f"Created new node {node_id}")

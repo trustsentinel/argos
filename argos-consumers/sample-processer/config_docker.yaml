@@ -1,0 +1,6 @@
+amqp:
+  host: 'rabbitmq'
+  exchange: 'peers-discovered'
+  queue: 'sample'
+  username: 'user'
+  password: 'password'

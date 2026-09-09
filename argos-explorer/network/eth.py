@@ -6,7 +6,7 @@ class ETHModule(NetworkModule):
         self.id = "eth"
         self.bootnodes = eth.get_bootnodes()
 
-    async def get_peers(self):
+    async def get_peers(self, max_depth=None):
         source = self.bootnodes[0] # select the first node
         for peer_address, peer_port, peer_public_key in await eth.get_neighbours(source):
             print(peer_address, peer_port, peer_public_key)
