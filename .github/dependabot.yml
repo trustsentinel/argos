@@ -7,6 +7,11 @@ updates:
     groups:
       python-dependencies:
         patterns: ["*"]
+    ignore:
+      # keep the client on 8.x to match the Elasticsearch 8.15 server;
+      # revisit together with a server upgrade
+      - dependency-name: "elasticsearch"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
