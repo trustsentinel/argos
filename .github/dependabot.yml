@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directories: ["/argos-explorer", "/argos-consumers/btc-processer", "/argos-consumers/sample-processer"]
+    schedule:
+      interval: weekly
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directories: ["/argos-explorer", "/argos-consumers/btc-processer", "/argos-consumers/sample-processer", "/infra/test"]
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ["*"]
