@@ -13,8 +13,8 @@ jobs:
     name: byte-compile
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: py_compile the deployable apps
@@ -24,8 +24,8 @@ jobs:
     name: unit tests (btc-processer)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: install deps
@@ -41,7 +41,7 @@ jobs:
     name: docker compose e2e
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: build images
         run: docker compose -f infra/docker-compose.yml --profile test build
       - name: run end-to-end test
